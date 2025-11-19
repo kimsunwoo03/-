@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>단어 시험</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+        }
+        #timer {
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        .question {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+        .question-type {
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .prompt {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .answer-input {
+            width: 100%;
+            padding: 6px;
+            margin-top: 6px;
+            box-sizing: border-box;
+        }
+        #submit-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1rem;
+            margin-top: 15px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-top: 2px solid #333;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<h1>단어 시험</h1>
+<div id="timer">남은 시간: 03:00</div>
+
+<div id="questions">
+    로딩 중...
+</div>
+
+<button id="submit-btn">제출하기</button>
+
+<div id="result"></div>
+
+<script>
+    const EXAM_TIME_SEC = 180; // 3분
+    let remainingSec = EXAM_TIME_SEC;
+    let timerId = null;
+    let questions = [];
+
+    function formatTime(sec) {
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function updateTimerText() {
+        const timerEl = document.getElementById('timer');
+        timerEl.textContent = `남은 시간: ${formatTime(remainingSec)}`;
+    }
+
+    function startTimer() {
+        updateTimerText();
+        timerId = setInterval(() => {
+            remainingSec--;
+            if (remainingSec <= 0) {
+                remainingSec = 0;
+                updateTimerText();
+                clearInterval(timerId);
+                autoSubmit();
+            } else {
+                updateTimerText();
+            }
+        }, 1000);
+    }
+
+    function renderQuestions() {
+        const container = document.getElementById('questions');
+        container.innerHTML = '';
+
+        questions.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = 'question';
+
+            const typeText = q.questionType === 'MEANING'
+                ? '영어 → 뜻 쓰기'
+                : '뜻 → 영어 쓰기';
+
+            div.innerHTML = `
+                <div><strong>문제 ${index + 1}</strong></div>
+                <div class="question-type">${typeText}</div>
+                <div class="prompt">${q.prompt}</div>
+                <input
+                    class="answer-input"
+                    type="text"
+                    data-word-id="${q.id}"
+                    data-type="${q.questionType}"
+                    placeholder="정답을 입력하세요"
+                />
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    async function loadQuestions() {
+        try {
+            const res = await fetch('/api/exams/questions');
+            if (!res.ok) {
+                throw new Error('문제를 불러오지 못했습니다.');
+            }
+            questions = await res.json();
+            renderQuestions();
+            startTimer();
+        } catch (e) {
+            const container = document.getElementById('questions');
+            container.innerHTML = `<div style="color:red;">${e.message}</div>`;
+        }
+    }
+
+    function collectAnswers() {
+        const inputs = document.querySelectorAll('.answer-input');
+        const answers = [];
+        inputs.forEach(input => {
+            const wordId = Number(input.dataset.wordId);
+            const type = input.dataset.type;
+            const value = input.value;
+            answers.push({
+                wordId: wordId,
+                questionType: type,
+                userAnswer: value
+            });
+        });
+        return answers;
+    }
+
+    async function submitExam(manual = false) {
+        clearInterval(timerId);
+
+        const answers = collectAnswers();
+        const elapsedSeconds = EXAM_TIME_SEC - remainingSec;
+
+        try {
+            const res = await fetch('/api/exams/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    answers: answers,
+                    elapsedSeconds: elapsedSeconds
+                })
+            });
+
+            if (!res.ok) {
+                throw new Error('제출 중 오류가 발생했습니다.');
+            }
+
+            const result = await res.json();
+            showResult(result, manual);
+        } catch (e) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div style="color:red;">${e.message}</div>`;
+        }
+    }
+
+    function showResult(result, manual) {
+        const resultDiv = document.getElementById('result');
+        const { totalQuestions, correctCount, timeOver, details } = result;
+
+        let html = '';
+        html += `<h2>결과</h2>`;
+        html += `<p>총 문제 수: ${totalQuestions}</p>`;
+        html += `<p>맞춘 개수: ${correctCount}</p>`;
+        html += `<p>제한 시간 초과 여부: ${timeOver ? '예 (시간 초과 제출)' : (manual ? '아니오 (직접 제출)' : '아니오')}</p>`;
+        html += `<hr/>`;
+
+        html += `<h3>문항별 채점</h3>`;
+        details.forEach((d, idx) => {
+            const cls = d.correct ? 'correct' : 'incorrect';
+            const typeText = d.questionType === 'MEANING'
+                ? '영어 → 뜻'
+                : '뜻 → 영어';
+
+            html += `
+                <div class="${cls}">
+                    <strong>문제 ${idx + 1} (${typeText})</strong><br/>
+                    정답: [${d.correctWord}] = ${d.correctMeaning}<br/>
+                    내가 쓴 답: ${d.userAnswer || '(미입력)'}<br/>
+                    결과: ${d.correct ? '정답' : '오답'}
+                </div>
+                <hr/>
+            `;
+        });
+
+        resultDiv.innerHTML = html;
+    }
+
+    function autoSubmit() {
+        submitExam(false);
+    }
+
+    document.getElementById('submit-btn').addEventListener('click', () => {
+        submitExam(true);
+    });
+
+    // 페이지 열리면 바로 문제 로드
+    loadQuestions();
+</script>
+</body>
+</html>
