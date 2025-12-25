@@ -20,4 +20,3 @@ public class WordSaving {
     @Column(nullable = false) private String meaning;
 
 }
-//단어를 받아서 DB  에 넣는 역할
