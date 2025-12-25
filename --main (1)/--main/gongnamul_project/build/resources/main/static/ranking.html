@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>단어 시험 랭킹</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        #refresh-btn {
+            margin-bottom: 10px;
+            padding: 6px 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            text-align: center;
+        }
+        th {
+            background: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+<h1>단어 시험 랭킹</h1>
+
+<button id="refresh-btn">새로고침</button>
+
+<table>
+    <thead>
+    <tr>
+        <th>순위</th>
+        <th>이름</th>
+        <th>점수</th>
+        <th>총 문항</th>
+        <th>걸린 시간</th>
+        <th>제출 시각</th>
+    </tr>
+    </thead>
+    <tbody id="ranking-body">
+    <tr><td colspan="6">로딩 중...</td></tr>
+    </tbody>
+</table>
+
+<script>
+    function formatTime(sec) {
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    async function loadRanking() {
+        const tbody = document.getElementById('ranking-body');
+        tbody.innerHTML = `<tr><td colspan="6">로딩 중...</td></tr>`;
+
+        try {
+            const res = await fetch('/api/exams/ranking');
+            if (!res.ok) {
+                throw new Error('랭킹을 불러오지 못했습니다.');
+            }
+            const data = await res.json();
+            console.log('랭킹 데이터:', data); // 디버깅용
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6">아직 기록이 없습니다.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            data.forEach((item, idx) => {
+                // 백엔드 필드 이름이 username / total / takenAt 인 경우 +
+                // 예전 버전 userName / totalQuestions / createdAt 도 같이 처리
+                const username = item.username ?? item.userName ?? '익명';
+                const total = item.total ?? item.totalQuestions ?? '-';
+                const takenAt = item.takenAt ?? item.createdAt ?? '-';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td>${username}</td>
+                    <td>${item.score}</td>
+                    <td>${total}</td>
+                    <td>${formatTime(item.elapsedSeconds)}</td>
+                    <td>${takenAt}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" style="color:red;">${e.message}</td></tr>`;
+        }
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', loadRanking);
+
+    loadRanking();
+</script>
+</body>
+</html>
