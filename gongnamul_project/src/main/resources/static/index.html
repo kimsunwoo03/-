@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>콩나물 프로젝트 - 단어장</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding-top: 80px; }
+        .navbar-brand img { margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="index.html">
+            <img src="오영완2.png" width="60" height="60" alt="로고">
+            <span>콩나물 단어장</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="vocab.html" onclick="runUpdate()">단어외우기</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="exam.html" onclick="runUpdate()">시험보기</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="ranking.html" onclick="runUpdate()">순위확인하기</a>
+                </li>
+            </ul>
+            <div class="d-flex">
+                <button class="btn btn-outline-success btn-sm" onclick="location.href='/bulk-page'">
+                    로그인
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+<h1 class = "mt-5 pt-5 text-center"><img src="오영완2.png" width="40" height="40" alt="로고">콩나물 단어장</h1>
+<div class="text-center my-4">
+    <img src="오영완1.png" alt="메인 배너" style="max-height: 400px; width: 100%; object-fit: contain;">
+</div>
+<footer class="bg-dark text-light py-3 mt-5 w-100" style="margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); position: relative; left: 50%; right: 50%; width: 100vw; transform: translateX(-50%);">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h6 class="d-flex align-items-center mb-3">
+                    <img src="오영완2.png" width="30" height="30" alt="로고" class="me-2">
+                    <span>오영완(오늘영어공부완료)</span>
+                </h6>
+                <p class="small text-secondary">
+                    콩나물처럼 쑥쑥 자라는 당신의 영어 실력!<br>
+                    매일 새로운 단어와 자가진단으로 지식을 채워보세요.
+                </p>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <h5 class="mb-3">바로가기</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2"><a href="vocab.html" class="text-secondary text-decoration-none">단어 외우기</a></li>
+                    <li class="mb-2"><a href="exam.html" class="text-secondary text-decoration-none">시험 보기</a></li>
+                    <li class="mb-2"><a href="ranking.html" class="text-secondary text-decoration-none">순위 확인</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <h5 class="mb-3">Contact</h5>
+                <p class="small text-secondary mb-1">이메일: OhEngComplete@gmail.com</p>
+                <p class="small text-secondary">GitHub: <a href="#https://github.com/kimsunwoo03/-/tree/main/--main%20(1)/--main" class="text-secondary">@gongnamul_project</a></p>
+            </div>
+        </div>
+
+        <hr class="bg-secondary">
+
+        <div class="row mt-4">
+            <div class="col text-center">
+                <p class="small text-secondary mb-0">
+                    &copy; 2025 오영완 프로젝트. All Rights Reserved.
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
